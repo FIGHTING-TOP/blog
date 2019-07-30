@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+	<title>上传图片</title>
+	<style type="text/css">
+		body{text-align: center;}
+		.mBtn {
+			background-color: #1AAD19;
+			color: white;
+			margin-left: auto;
+			margin-right: auto;
+			box-sizing: border-box;
+			font-size: 18px;
+			line-height: 2.33333333;
+			border-radius: 5px;
+			width: 90%;
+		}
+
+		.toast {
+			position: fixed;
+			top: 49%;
+			width: 25%;
+			left: 40%;
+			font-size: 18px;
+			line-height: 2.33333333;
+			background: rgba(0, 0, 0, .7);
+			color: white;
+			border-radius: 5px;
+			display: none
+		}
+		.imgBox img{
+			margin-top: 10px;
+			width:90%
+		}
+	</style>
+</head>
+
+<body>
+
+	<p class="imgPicker mBtn" id="imgPicker">点击选择图片</p>
+
+	<input type="file" name="image" accept="image/gif,image/jpeg,image/jpg,image/png,image/svg,image/webp,image/bmp"
+		multiple id="myfiles" style="display: none;" />
+
+	<p class="submit mBtn" id="submit">点击上传</p>
+
+	<p class="toast" id="toast"></p>
+	<p class="loading" id="loading"></p>
+
+	<div id="result"></div>
+	<div class="imgBox" id="imgBox"></div>
+	<script>
+		var fight = {
+			showToast: function (str,noFade) {
+				var toast = document.getElementById("toast");
+				toast.innerText = str;
+				toast.style.display = 'block';
+				if(!noFade){
+					setTimeout(function () {
+						toast.style.display = 'none';
+					}, 3000)
+				}
+			},
+			reviewImg: function (){
+				var files = document.getElementById("myfiles").files;
+				var imgBox = document.getElementById("imgBox");
+				imgBox.innerHTML = '';
+				for(var i = 0;i < files.length; i++){
+					var reader = new FileReader();
+					reader.readAsDataURL(files[i]);
+					reader.onload=function(e){
+						var img = new Image();
+						img.src = this.result
+						imgBox.appendChild(img);
+					}
+				}
+
+			},
+			uploadFile: function () {
+				var formData = new FormData();
+				var files = document.getElementById("myfiles").files;
+				if (files.length) {
+					fight.showToast('正在上传...',true);
+					formData.enctype = "multipart/form-data";
+					var fileArray = [].slice.call(files, 0);//类数组转换为数组
+					fileArray.forEach(function (file) {
+						formData.append("image", file);//循环遍历把文件对象插到formData对象上
+					});
+					var xhr = new XMLHttpRequest();
+					xhr.open("post", "http://118.190.215.225:8125/uploadFile/image", true);
+					xhr.onload = function (e) {
+						if (this.status == 200) {
+							fight.showToast('上传成功');
+							var res = JSON.parse(this.response).data;
+							var str = '<p>上传成功，以下为云端地址</p>';
+							if (res && res.length) {
+								for (var i = 0; i < res.length; i++) {
+									str += '<p><input type="text" value="' + res[i] + '"/></p>'
+								}
+							}
+							document.getElementById("result").innerHTML = str;
+						}else{
+							fight.showToast('上传失败');
+						}
+					};
+					xhr.send(formData);
+				} else {
+					fight.showToast('选择图片先')
+				}
+			},
+			bind: function () {
+				var selector = document.getElementById("imgPicker");
+				selector.onclick = function () {
+					document.getElementById("myfiles").click();
+				};
+				var input = document.getElementById("submit");
+				input.onclick = fight.uploadFile;
+				var selector = document.getElementById("myfiles");
+				selector.onchange = fight.reviewImg
+			}
+		}
+
+		fight.bind();
+
+	</script>
+</body>
+
+</html>
