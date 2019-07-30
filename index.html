@@ -90,7 +90,7 @@
 						formData.append("image", file);//循环遍历把文件对象插到formData对象上
 					});
 					var xhr = new XMLHttpRequest();
-					xhr.open("post", "http://118.190.215.225:8125/uploadFile/image", true);
+					xhr.open("post", "https://118.190.215.225:8125/uploadFile/image", true);
 					xhr.onload = function (e) {
 						if (this.status == 200) {
 							fight.showToast('上传成功');
